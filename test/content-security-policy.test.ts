@@ -310,7 +310,7 @@ describe("Content-Security-Policy middleware", () => {
         directives: {},
       });
     }).toThrow(
-      /^Content-Security-Policy needs a default-src but none was provided$/
+      /^Content-Security-Policy has no directives. Either set some or disable the header$/
     );
     expect(() => {
       contentSecurityPolicy({
@@ -350,6 +350,67 @@ describe("Content-Security-Policy middleware", () => {
         },
       });
     }).not.toThrow();
+  });
+
+  it("allows default-src to be explicitly disabled", async () => {
+    await checkCsp({
+      middlewareArgs: [
+        {
+          directives: {
+            defaultSrc: null,
+            scriptSrc: ["example.com"],
+          },
+        },
+      ],
+      expectedDirectives: new Set(["script-src example.com"]),
+    });
+
+    await checkCsp({
+      middlewareArgs: [
+        {
+          directives: {
+            "default-src": null,
+            "script-src": ["example.com"],
+          },
+        },
+      ],
+      expectedDirectives: new Set(["script-src example.com"]),
+    });
+  });
+
+  it("throws an error if default-src is disabled and there are no other directives", () => {
+    expect(() => {
+      contentSecurityPolicy({
+        directives: {
+          defaultSrc: null,
+        },
+      });
+    }).toThrow(
+      /^Content-Security-Policy has no directives. Either set some or disable the header$/
+    );
+
+    expect(() => {
+      contentSecurityPolicy({
+        directives: {
+          "default-src": null,
+        },
+      });
+    }).toThrow(
+      /^Content-Security-Policy has no directives. Either set some or disable the header$/
+    );
+  });
+
+  it("throws an error if directives other than default-src are `null`", () => {
+    expect(() => {
+      contentSecurityPolicy({
+        directives: {
+          "default-src": "'self",
+          "script-src": null,
+        },
+      });
+    }).toThrow(
+      /^Content-Security-Policy received an invalid directive value for "script-src"$/
+    );
   });
 
   // This functionality only exists to ease the transition to this major version.

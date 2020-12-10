@@ -1,5 +1,11 @@
 # Changelog
 
+### Unreleased
+
+### Added
+
+- `helmet.contentSecurityPolicy`: setting the `default-src` to `null` disables it
+
 ## 4.2.0 - 2020-11-01
 
 ### Added
